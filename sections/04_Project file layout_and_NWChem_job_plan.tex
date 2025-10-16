@@ -1,107 +1,128 @@
+
 \section{Project file layout and NWChem job plan}
 \label{sec:files}
 
-To keep the workflow reproducible and scriptable, we organize all runs by
-\texttt{molecule/method/basis/shape/scale/}.
-Methods are \texttt{HF}, \texttt{MP2}, \texttt{CCSD(T)};
-basis sets are \texttt{AVDZ} (aug-cc-pVDZ), \texttt{AVTZ} (aug-cc-pVTZ),
-and optionally \texttt{AVQZ}.
+\paragraph{Goals.}
+(i) Minimize directory depth and enable a single parsing loop across outputs;
+(ii) harvest \textbf{HF} and \textbf{MP2} energies from each \textbf{CCSD(T)} run to avoid redundant jobs;
+(iii) keep runs fully reproducible and easy to re-generate.
 
-\paragraph{Directory structure (per molecule).}
+\paragraph{Shallow, one-geometry-one-output (OGOO) layout.}
+All geometry-specific work lives under
+\texttt{\textless molecule\textgreater/\textless basis\textgreater/\textless shape\textgreater/s\textless 3-digit scale\textgreater/}:
 \begin{verbatim}
-<MOLECULE>/
-  monomers/                         # geometry-independent monomer self-energies
-    HF/
-      AVDZ/  E_A(A).out  E_B(B).out  E_C(C).out
-      AVTZ/  ...
-      AVQZ/  ...           (optional)
-    MP2/
-      AVDZ/  ...
-    CCSD(T)/
-      AVDZ/  ...
-  HF/
-    AVDZ/
-      linear/
-        s001/   input.nw  terms.csv  logs/
-        s002/   ...
-        ...
-      equilateral/
-        s001/   ...
-      isosceles/
-        s001/   ...
-      scalene/
-        s001/   ...
-    AVTZ/   (same shape/scale layout)
-    AVQZ/   (optional)
-  MP2/      (same per-basis, per-shape, per-scale layout)
-  CCSD(T)/  (same)
+<MOL>/<BASIS>/<SHAPE>/s001/
+  run.nw     # all fragments + ghosts + all methods (SCF, MP2, CCSD(T))
+  run.out    # single output to parse
+  terms.csv  # aggregated row per geometry (energies + CP/BSSE)
+\end{verbatim}
+Here \texttt{<BASIS>} $\in$ \{\texttt{AVDZ}, \texttt{AVTZ}, \texttt{AVQZ}\}, and \texttt{<SHAPE>} encodes the trimer geometry family.
+The directory name for the scale keeps your original convention \texttt{shape/s001}.
+
+\paragraph{Monomer cache (geometry independent).}
+Compute $E_A(A)$, $E_B(B)$, $E_C(C)$ once per basis and reuse:
+\begin{verbatim}
+<MOL>/cache/monomers/<BASIS>/
+  monomers.nw   monomers.out   monomers.json
+\end{verbatim}
+This avoids repeating the same isolated-monomer optimizations for every geometry/scale.
+
+\paragraph{Single-input strategy with method harvesting.}
+For a given geometry, \texttt{run.nw} contains all fragment/basis-with-ghost tasks needed for CP on a trimer. Each task group is labeled with a unique \texttt{title} so parsers can grep reliably.
+Each block runs, in order,
+\begin{verbatim}
+task scf
+task mp2
+task ccsd(t)
+\end{verbatim}
+so that \texttt{run.out} \emph{always} contains HF, MP2, and CCSD(T) energies for the same geometry and fragment/basis.
+No per-method folders are needed; a single pass over \texttt{run.out} can collect all three methods.
+
+\paragraph{Which energies are evaluated per geometry.}
+If monomer self-energies are re-used from the cache, we evaluate $15$ geometry-specific terms per basis; if recomputed each time, there are $18$:
+\begin{align*}
+&\text{Monomers (cache or per-geometry): } E_A(A),\,E_B(B),\,E_C(C) \\
+&\text{Monomers in ghosts: }
+  E_A(AB),\,E_A(AC),\,E_A(ABC),\;
+  E_B(AB),\,E_B(BC),\,E_B(ABC),\;
+  E_C(AC),\,E_C(BC),\,E_C(ABC) \\
+&\text{Dimers in their own basis: } E_{AB}(AB),\,E_{AC}(AC),\,E_{BC}(BC) \\
+&\text{Dimers in trimer basis: } E_{AB}(ABC),\,E_{AC}(ABC),\,E_{BC}(ABC) \\
+&\text{(Optional) Trimer: } E_{ABC}(ABC).
+\end{align*}
+Each quantity is captured for the three methods (SCF, MP2, CCSD(T)) from the \emph{same} output file.
+
+\paragraph{Recommended file tags and parse keys.}
+Prepend each block with a unique \texttt{title}, e.g.,
+\texttt{title "E\_A(AB) : <MOL> <BASIS> <SHAPE> s001"},
+so \texttt{terms.csv} can be populated by a single sweep over \texttt{run.out} using the tuple
+\((\text{label}, \text{method})\) where \(\text{method} \in \{\text{SCF}, \text{MP2}, \text{CCSD(T)}\}\).
+We standardize labels as strings like \texttt{E\_A(AB)}, \texttt{E\_AB(ABC)}, etc.
+
+\paragraph{Minimal \texttt{run.nw} skeleton (per geometry).}
+Below shows the pattern; repeat for each required fragment/basis-with-ghosts.
+The \texttt{title} lines are the key to painless parsing.
+\begin{verbatim}
+start trimer_example
+set print high
+memory total 4000 mb
+
+# --- Geometry with labeled fragments A, B, C ---
+geometry units angstrom noautoz
+  fragment A
+    ...  # atoms of monomer A
+  fragment B
+    ...  # atoms of monomer B
+  fragment C
+    ...  # atoms of monomer C
+end
+
+# --- Basis blocks you'll switch between (AB, AC, BC, ABC) ---
+basis "AB" spherical
+  # define basis on A & B; use 'ghost' for centers not active
+end
+
+# ------------ E_A(AB): monomer A in AB basis (B as ghost) ------------
+title "E_A(AB) : <MOL> <BASIS> <SHAPE> s001"
+set geometry:fragment A
+task scf
+task mp2
+task ccsd(t)
+
+# ------------ E_AB(AB): dimer AB in AB basis ------------
+title "E_AB(AB) : <MOL> <BASIS> <SHAPE> s001"
+set geometry:fragment AB
+task scf
+task mp2
+task ccsd(t)
+
+# ------------ E_AB(ABC): dimer AB in ABC basis ------------
+title "E_AB(ABC) : <MOL> <BASIS> <SHAPE> s001"
+# define ABC basis (basis on all centers; ghost C for dimer AB if appropriate)
+task scf
+task mp2
+task ccsd(t)
+
+# ... repeat other required blocks ...
 \end{verbatim}
 
-Here \texttt{s001}, \texttt{s002}, \dots are the scale values from the
-shape family (Sec.~\ref{sec:families}). Each \texttt{sXXX/} directory holds
-all per-geometry calculations and a summary \texttt{terms.csv}.
-
-\paragraph{Canonical filenames for the 18 BSSE terms.}
-We label energies as \(E_{\text{frag}}(\text{basis})\) and encode them with
-underscores for file names:
-\[
-\texttt{E\_FRAG\_BASIS.out} \quad \text{where} \quad
-\texttt{FRAG}\in\{A,B,C,AB,AC,BC\},\;
-\texttt{BASIS}\in\{A,B,C,AB,AC,BC,ABC\}.
-\]
-For a trimer geometry, compute the following files (15 per geometry if the
-3 isolated monomers are reused; 18 if recomputed; the optional total trimer
-adds one more):
-
-\begin{center}
-\begin{tabular}{lll}
-\hline
-\textbf{File} & \textbf{Meaning} & \textbf{Per-geom?} \\
-\hline
-E\_A\_A.out,\;E\_B\_B.out,\;E\_C\_C.out & \(E_A(A),E_B(B),E_C(C)\) & no (compute once) \\
-E\_A\_AB.out,\;E\_A\_AC.out,\;E\_A\_ABC.out & \(E_A(AB),E_A(AC),E_A(ABC)\) & yes \\
-E\_B\_AB.out,\;E\_B\_BC.out,\;E\_B\_ABC.out & \(E_B(AB),E_B(BC),E_B(ABC)\) & yes \\
-E\_C\_AC.out,\;E\_C\_BC.out,\;E\_C\_ABC.out & \(E_C(AC),E_C(BC),E_C(ABC)\) & yes \\
-E\_AB\_AB.out,\;E\_AB\_ABC.out & \(E_{AB}(AB),E_{AB}(ABC)\) & yes \\
-E\_AC\_AC.out,\;E\_AC\_ABC.out & \(E_{AC}(AC),E_{AC}(ABC)\) & yes \\
-E\_BC\_BC.out,\;E\_BC\_ABC.out & \(E_{BC}(BC),E_{BC}(ABC)\) & yes \\
-\hline
-\textit{optional: } E\_ABC\_ABC.out & \(E_{ABC}(ABC)\) & yes (needed for CP or std.) \\
-\hline
-\end{tabular}
-\end{center}
-
-\paragraph{Per-geometry summary.}
-After all files finish in \texttt{sXXX/}, write a single row to
-\texttt{terms.csv}:
-\begin{verbatim}
-shape,scale,EA_A,EB_B,EC_C,EA_AB,EA_AC,EA_ABC,EB_AB,EB_BC,EB_ABC,
-EC_AC,EC_BC,EC_ABC,EAB_AB,EAB_ABC,EAC_AC,EAC_ABC,EBC_BC,EBC_ABC,EABC_ABC
-\end{verbatim}
-(Include \texttt{EABC\_ABC} only if you compute CP/standard interaction energies.)
-%--
-\clearpage
-%---
-
-\paragraph{NWChem input strategy (practical notes).}
-The implementation of the 15 per-geometry jobs can be done in either of two ways:
-\begin{enumerate}[label=(\alph*),leftmargin=2em]
-\item \textbf{One input per term} (simplest to script): write 15 small
-      \texttt{.nw} files in \texttt{sXXX/}, each producing one
-      \texttt{E\_*\_*.out}.
-\item \textbf{One input that runs multiple tasks} (fewer files): reuse the
-      same geometry and change ghost/fragment settings between
-      \texttt{task} blocks so the output prints each energy with a clear tag.
-\end{enumerate}
-Only the three monomer self-energies \(E_A(A),E_B(B),E_C(C)\) are
-geometry independent; compute them once per method/basis under
-\texttt{monomers/<method>/<basis>/} and reuse across all shapes/scales.
+\paragraph{Parser/CSV convention (single-loop friendly).}
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Key} each energy by \verb|(label, method)| where
+        \verb|label \in {"E_A(AB)", "E_AB(ABC)", ...}| and
+        \verb|method \in {"SCF","MP2","CCSD(T)"}|.
+  \item \textbf{Row schema} for \texttt{terms.csv} (per geometry):\\
+  \texttt{mol,basis,shape,scale, E\_A(A)\_SCF, E\_A(A)\_MP2, E\_A(A)\_CCSDT, ..., E\_AB(ABC)\_CCSDT, E\_ABC(ABC)\_CCSDT, CP\_interaction(method), BSSE(method)}
+  \item \textbf{Reuse} the cached $E_A(A)$, $E_B(B)$, $E_C(C)$ columns by basis from\\
+        \texttt{<molecule>/cache/monomers/<basis>/monomers.json}.
+\end{itemize}
 
 \paragraph{Automation hook.}
-I will consider a consistent JSON file alongside each \texttt{sXXX/} directory(e.g., \texttt{config.json}) containing the three Cartesian coordinates and the scale \(s\). A python script can:
-(i) generate all \texttt{.nw} inputs from the JSON file,
-(ii) parse energies from \texttt{.out} files,
-(iii) append a row to \texttt{terms.csv}, and
-(iv) compute the BSSE difference for that geometry.
-This keeps the pipeline reproducible and easy to re-run for new basis sets.
-Note, Any recommendations are welcome!
+Alongside \texttt{run.nw}, store \texttt{geom.json} with Cartesian coordinates and the scale tag (e.g., \texttt{s001}).
+A Python driver:
+(i) builds \texttt{run.nw} from \texttt{geom.json} and a template,
+(ii) executes NWChem,
+(iii) parses HF/MP2/CCSD(T) energies keyed by \texttt{title} lines,
+(iv) computes CP-corrected interaction energies and BSSE per method, and
+(v) appends a row to \texttt{terms.csv}.
+This preserves your original workflow while enabling a single over-the-tree parsing loop.
