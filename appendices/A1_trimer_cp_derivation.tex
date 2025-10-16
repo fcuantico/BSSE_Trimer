@@ -1,0 +1,61 @@
+% appendices/A1_trimer_cp_derivation.tex
+
+\section{Trimer CP-Corrected Interaction Energy: Algebraic Derivation}
+\label{app:trimer-cp-derivation}
+
+\subsection*{Definitions}
+CP two-body (evaluated in each dimer basis with ghost functions):
+\begin{align}
+\varepsilon_{ij}^{(2)}(ij)
+&= E_{ij}(ij) - \big[E_i(ij)+E_j(ij)\big],
+\qquad i,j \in \{A,B,C\}.
+\label{app:eq:cp-dimer}
+\end{align}
+CP three-body (pure term in the trimer basis):
+\begin{align}
+\varepsilon_{ABC}^{(3)}(ABC)
+&= E_{ABC}(ABC)
+ - \Big( E_{AB}(ABC)+E_{AC}(ABC)+E_{BC}(ABC)
+ - [E_A(ABC)+E_B(ABC)+E_C(ABC)] \Big).
+\label{app:eq:cp-three}
+\end{align}
+
+\subsection*{CP interaction energy for the trimer}
+\begin{align}
+\Delta E_{\mathrm{int}}^{\mathrm{CP}}
+&= \varepsilon_{AB}^{(2)}(AB) + \varepsilon_{AC}^{(2)}(AC) + \varepsilon_{BC}^{(2)}(BC)
+   + \varepsilon_{ABC}^{(3)}(ABC) \notag\\
+&= \big[ E_{AB}(AB) - E_A(AB) - E_B(AB) \big]
+ + \big[ E_{AC}(AC) - E_A(AC) - E_C(AC) \big] \notag\\
+&\quad + \big[ E_{BC}(BC) - E_B(BC) - E_C(BC) \big]
+ + \varepsilon_{ABC}^{(3)}(ABC).
+\label{app:eq:cp-trimer}
+\end{align}
+
+\subsection*{Standard interaction energy}
+\begin{align}
+\Delta E_{\mathrm{int}}^{\mathrm{st}}
+= E_{ABC}(ABC) - \big[ E_A(A)+E_B(B)+E_C(C) \big].
+\label{app:eq:std-trimer}
+\end{align}
+
+\subsection*{BSSE (convention)}
+We define
+\[
+\mathrm{BSSE} = \Delta E_{\mathrm{int}}^{\mathrm{st}} - \Delta E_{\mathrm{int}}^{\mathrm{CP}}.
+\]
+Algebraic grouping yields
+\begin{align}
+\label{app:eq:bsse-trimer-grouped}
+\mathrm{BSSE}
+&=\Bigl( E_{A}(AB)+E_{A}(AC) - E_{A}(ABC) - E_{A}(A) \Bigr) \notag\\
+&\quad+ \Bigl( E_{B}(AB)+E_{B}(BC) - E_{B}(ABC) - E_{B}(B) \Bigr) \notag\\
+&\quad+ \Bigl( E_{C}(AC)+E_{C}(BC) - E_{C}(ABC) - E_{C}(C) \Bigr) \notag\\
+&\quad+ \Bigl( E_{AB}(ABC) - E_{AB}(AB) \Bigr)
+      + \Bigl( E_{AC}(ABC) - E_{AC}(AC) \Bigr)
+      + \Bigl( E_{BC}(ABC) - E_{BC}(BC) \Bigr).
+\end{align}
+
+\noindent
+Equivalently, the fully expanded form (18 terms) is obtained by distributing the
+grouped differences in Eq.~\eqref{app:eq:bsse-trimer-grouped}.

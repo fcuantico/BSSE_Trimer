@@ -1,0 +1,248 @@
+\section{BSSE Expression for a Trimer}
+\label{sec:expr}
+
+Consider a molecular system composed of monomers \(A\), \(B\), and \(C\).
+The total energy can be decomposed into one-, two-, and three-body contributions
+following the many-body expansion formalism~\autocite{Valiron1997} :
+\begin{align}
+  \begin{split}
+  E^{\mathrm{tot}}_{ABC} &=
+  E_A + E_B + E_C 
+  +   \varepsilon^{(2)}_{AB}
+  +   \varepsilon^{(2)}_{AC}
+  +   \varepsilon^{(2)}_{BC}
+  +   \varepsilon^{(3)}_{ABC},\\[0.25cm]
+  %--
+  E^{\mathrm{tot}}_{ABC} &=
+  \sum_{i}E_i + \sum_{i\neq j}\varepsilon_{ij}^{(2)} + \varepsilon^{(3)}_{ABC},
+  \label{eq:manybody_trimer}
+  \end{split}
+\end{align}
+where \(i,j\in\{A,B,C\}\) and the ordering \(ij\) is chosen so that \(i<j\)
+to avoid double counting.
+The two-body terms \(\varepsilon_{ij}^{(2)}\) refer to the interaction energy
+between pairs of monomers, while the three-body term
+\(\varepsilon_{ABC}^{(3)}\) represents the non-additive energy
+that arises only when all three monomers are present simultaneously.
+In other words, these terms correspond to the energy required to bring
+two or three monomers together, respectively.
+
+\noindent
+The standard two-body interaction energy is defined as
+\begin{align}
+    \Delta E_{\mathrm{int}}^{\mathrm{st}}(ij)
+    = \varepsilon_{ij}^{(2)}
+    = E_{ij}^{\mathrm{tot}} - (E_i + E_j),
+    \label{eq:equation_2}
+\end{align}
+and, analogously, the standard three-body interaction energy is
+\begin{align}
+    \Delta E_{\mathrm{int}}^{\mathrm{st}}(ijk)
+    = \varepsilon_{ijk}^{(3)}
+    = E_{ijk}^{\mathrm{tot}} - (E_i + E_j + E_k).
+    \label{eq:st_three_body}
+\end{align}
+
+\noindent
+By combining Eqs.~(\ref{eq:st_three_body}) and (\ref{eq:manybody_trimer}),
+the total interaction energy of the system formed by monomers \(A\), \(B\), and \(C\)
+can be expressed in two equivalent ways:
+\begin{align}
+      \Delta E_{\mathrm{int}}^{\mathrm{st}}
+      &= E^{\mathrm{tot}}_{ABC} - \sum_{i}E_i,
+      \label{eq:three_body_inter_1}\\[0.25cm]
+      %--
+      \Delta E_{\mathrm{int}}^{\mathrm{st}}
+      &= 
+          \varepsilon^{(2)}_{AB}
+      +   \varepsilon^{(2)}_{AC}
+      +   \varepsilon^{(2)}_{BC}
+      +   \varepsilon^{(3)}_{ABC}.
+      \label{eq:three_body_inte_2}
+\end{align}
+
+\noindent
+Equation~(\ref{eq:three_body_inter_1}) is typically used when the total
+cluster energy \(E^{\mathrm{tot}}_{ABC}\) and the monomer energies
+\(E_A\), \(E_B\), and \(E_C\) are known from direct computation.
+Equation~(\ref{eq:three_body_inte_2}), in contrast,
+is more convenient when the two-body and three-body
+interaction energies are determined separately, for example,
+from potential energy surface calculations or incremental schemes.
+%--
+Thus, the interaction energy of the trimer system can be evaluated
+either from the total energy of the cluster and its monomers,
+or from the sum of the pairwise and three-body interaction contributions. In theory, if the ``exact'' energies of the monomers and the cluster were available, the interaction energy of a two-particle system could be determined exactly using Eq.~(\ref{eq:equation_2}).
+In practice, however, this is not possible because all quantities are obtained through quantum-chemical approximations that depend on both the
+\emph{level of theory}---such as Hartree--Fock (HF),
+Møller--Plesset perturbation theory (MP2),
+coupled-cluster theory with single, double, and perturbative triple excitations [CCSD(T)],
+or density functional theory (DFT)---and the chosen \emph{basis set}
+used to represent the molecular orbitals.
+
+
+The fundamental problem that arises is one of \textbf{basis-set inconsistency}.
+Within the framework of the variational principle and the
+Roothaan--Hall approximation~\autocite{Mayer2003,Szabo2012}, molecular orbitals are expressed as
+linear combinations of a finite set of \emph{basis functions}
+(often referred to as atomic orbitals).
+In this context, the total basis set of the supermolecule
+is larger than that of the individual monomers:
+the supermolecule basis consists of all basis functions
+associated with every monomer in the system,
+whereas each isolated monomer is described only by its own
+subset of basis functions.
+Consequently, the total energy of the cluster is evaluated in a
+more complete variational space than that of the separated monomers.
+
+
+If we compute the standard interaction energy of the \(AB\) cluster
+under these conditions, we obtain
+\begin{equation}
+    \Delta E_{\mathrm{int}}^{\mathrm{st}}
+      = E^{\mathrm{tot}}_{AB}(AB)
+        - \big[E_{A}(A) + E_{B}(B)\big],
+    \label{eq:st_basinconsistency}
+\end{equation}
+where the notation in parentheses explicitly denotes
+the basis set employed for each subsystem.
+Because the basis used for the cluster \((AB)\) is more extensive
+than that used for the isolated monomers \((A)\) and \((B)\),
+the total energy of the dimer is artificially stabilized.
+As a result, the corresponding interaction energy
+is spuriously lowered,
+leading to what is known as the
+\emph{basis set superposition error} (BSSE).
+
+To correct for this basis-set inconsistency,
+Boys and Bernardi~\cite{Boys1970} introduced the
+\textit{counterpoise (CP) correction} procedure.
+The method was originally formulated for a two-particle system (\(AB\)),
+in which the total energy of the dimer \(AB\)
+is evaluated in the full dimer basis \((AB)\),
+and each monomer energy is recomputed in the same basis
+while the partner monomer is replaced by \emph{ghost} orbitals
+(i.e., basis functions without nuclei or electrons).
+The counterpoise-corrected interaction energy is then defined as
+\begin{equation}
+    \Delta E_{\mathrm{int}}^{\mathrm{CP}}
+      = E^{\mathrm{tot}}_{AB}(AB)
+        - \big[E_{A}(AB) + E_{B}(AB)\big],
+    \label{eq:CP_correction_two_body}
+\end{equation}
+%--
+\noindent
+where \(E_A(AB)\) and \(E_B(AB)\)
+represent the monomer energies calculated in the presence of
+the other monomer’s basis set.
+
+%--
+\clearpage
+The BSSE quantifies how much the standard interaction energy is
+\textit{contaminated} by basis-set inconsistencies.
+A practical way to evaluate this contamination is to compute
+the difference between the standard (uncorrected) interaction energy
+and the counterpoise-corrected one\autocite{Duijneveldt1994} :
+\begin{equation}
+\label{eq:BSSE_definition_two_body}
+\mathrm{BSSE}
+= \Delta E_{\mathrm{int}}^{\mathrm{st}} - \Delta E_{\mathrm{int}}^{\mathrm{CP}}
+= \big[E_{A}(AB)+E_{B}(AB)\big] - \big[E_{A}(A)+E_{B}(B)\big].
+\end{equation}
+
+\noindent
+Since interaction energies for bound systems are typically negative (attractive), a \emph{negative} BSSE indicates that the uncorrected interaction energy, $\Delta E_{\mathrm{int}}^{\mathrm{st}}$, is \textit{too attractive}. After applying the counterpoise correction, the resulting interaction energy $\Delta E_{\mathrm{int}}^{\mathrm{CP}}$ is therefore \textbf{less negative}, and thus
+\[
+\mathrm{BSSE} < 0.
+\]
+This negative value represents the \textbf{fictitious stabilization}—the artificial energy lowering that arises purely from basis-set imbalance. Hence, the difference above quantifies how much of the apparent overbinding is due to BSSE.
+
+
+One of the first extensions of the counterpoise (CP) correction to trimers was given by White and Davidson in their study of hydrogen-bonded ice\autocite{White1990}, and later generalized by Valiron and Mayer\autocite{Valiron1997}. In this framework, each two-body interaction energy $\varepsilon_{ij}^{(2)}$ ($i,j\in\{A,B,C\}$) is evaluated with CP as in Eq.~(\ref{eq:equation_2}) and assembled in Eq.~(\ref{eq:three_body_inte_2}). The remaining term,
+$\varepsilon_{ijk}^{(3)}$, is the \emph{pure three-body} contribution. It is obtained from the many-body expansion for the trimer, Eq.~(\ref{eq:manybody_trimer}), with CP applied consistently to all monomer and dimer terms:
+{\small
+\begin{equation}
+\label{eq:three_body_cp}
+\begin{split}
+\varepsilon_{ABC}^{(3)}(ABC)
+= E^{\mathrm{tot}}_{ABC}(ABC)
+- \Big[
+  E_{A}(ABC) + E_{B}(ABC) + E_{C}(ABC)
+  \\
+  \qquad\qquad
+  +\, \varepsilon_{AB}^{(2)}(ABC)
+  +\, \varepsilon_{AC}^{(2)}(ABC)
+  +\, \varepsilon_{BC}^{(2)}(ABC)
+\Big].
+\end{split}
+\end{equation}
+}
+From here the (CP) interaction energy for the trimer can be written as
+\begin{align}
+    \begin{split}
+        \Delta E_{\text{int}}^{\text{CP}} =
+        \varepsilon_{AB}^{(2)}(AB) + \varepsilon_{AC}^{(2)}(AC) + \varepsilon_{BC}^{(2)}(BC) + \varepsilon_{ABC}^{(3)}(ABC)
+    \end{split}
+\end{align}
+which can be arranged into the following 16-term expression by considering each contribution:
+{\small
+\begin{align}
+    \begin{split}
+        \Delta E_{\text{int}}^{\text{CP}} &=
+        E_{AB}(AB) - \big[E_{A}(AB)+E_{B}(AB)\big] + E_{AC}(AC) -\big[E_{A}(AC)+E_{C}(AC)\big]\\
+        &+  E_{BC}(BC)
+        -\big[E_{B}(BC)+E_{C}(BC)\big]
+        %--
+        + \mathcal{E}_{ABC}
+        \label{eq:equation-11}
+    \end{split}
+\end{align}
+}
+where 
+\[
+\mathcal{E}_{ABC} =  E_{ABC}(ABC) - \big[E_{AB}(ABC) + E_{AC}(ABC) + E_{BC}(ABC) - \big[E_{A}(ABC) + E_{B}(ABC)+E_{C}(ABC)\big]\big]
+\]
+%--
+\clearpage
+Now, the standard interaction energy  for the trimer is given by
+\begin{equation}
+    \Delta E_{\text{int}}^{\text{st}} = E_{ABC}(ABC) - \big[ 
+    E_{A}(A) + E_{B}(B) + E_{C}(C)\big]
+    \label{eq:equation-12}
+\end{equation}
+and from here the BSSE  is given by
+\small{
+\begin{align}
+    \begin{split}
+    \text{BSSE} &= \Delta E_{\mathrm{int}}^{\mathrm{st}} - \Delta E_{\mathrm{int}}^{\mathrm{CP}}\\[0.25cm]
+    &=\Big[[E_{A}(AB) + E_{A}(AC)] -  [E_{A}(ABC) + E_{A}(A)]\Big]\\[0.25cm]
+    %--
+    &+\Big[[E_{B}(AB) + E_{B}(BC)] -  [E_{B}(ABC) + E_{B}(B)]\Big]\\[0.25cm]
+    %--
+    &+\Big[E_{C}(AC) + E_{C}(BC)] -  [E_{C}(ABC) + E_{C}(C)]\Big]\\[0.25cm]
+    %--
+    &+\Big[[E_{AB}(ABC) + E_{AC}(ABC)]-[E_{AB}(AB)+E_{AC}(AC)]\Big]
+    %--
+    + \Big[E_{BC}(ABC) - E_{BC}(BC)\Big]
+    \end{split}
+    \label{eq:equation-13}
+\end{align}
+}
+\noindent
+
+
+
+
+
+%\begin{align}
+%    \begin{split}
+%        \Delta E_{\mathrm{int}}^{\mathrm{CP}} =
+        
+%    \end{split}
+%\end{align}
+
+
+
+
+
+

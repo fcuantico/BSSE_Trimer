@@ -1,0 +1,107 @@
+\section{Project file layout and NWChem job plan}
+\label{sec:files}
+
+To keep the workflow reproducible and scriptable, we organize all runs by
+\texttt{molecule/method/basis/shape/scale/}.
+Methods are \texttt{HF}, \texttt{MP2}, \texttt{CCSD(T)};
+basis sets are \texttt{AVDZ} (aug-cc-pVDZ), \texttt{AVTZ} (aug-cc-pVTZ),
+and optionally \texttt{AVQZ}.
+
+\paragraph{Directory structure (per molecule).}
+\begin{verbatim}
+<MOLECULE>/
+  monomers/                         # geometry-independent monomer self-energies
+    HF/
+      AVDZ/  E_A(A).out  E_B(B).out  E_C(C).out
+      AVTZ/  ...
+      AVQZ/  ...           (optional)
+    MP2/
+      AVDZ/  ...
+    CCSD(T)/
+      AVDZ/  ...
+  HF/
+    AVDZ/
+      linear/
+        s001/   input.nw  terms.csv  logs/
+        s002/   ...
+        ...
+      equilateral/
+        s001/   ...
+      isosceles/
+        s001/   ...
+      scalene/
+        s001/   ...
+    AVTZ/   (same shape/scale layout)
+    AVQZ/   (optional)
+  MP2/      (same per-basis, per-shape, per-scale layout)
+  CCSD(T)/  (same)
+\end{verbatim}
+
+Here \texttt{s001}, \texttt{s002}, \dots are the scale values from the
+shape family (Sec.~\ref{sec:families}). Each \texttt{sXXX/} directory holds
+all per-geometry calculations and a summary \texttt{terms.csv}.
+
+\paragraph{Canonical filenames for the 18 BSSE terms.}
+We label energies as \(E_{\text{frag}}(\text{basis})\) and encode them with
+underscores for file names:
+\[
+\texttt{E\_FRAG\_BASIS.out} \quad \text{where} \quad
+\texttt{FRAG}\in\{A,B,C,AB,AC,BC\},\;
+\texttt{BASIS}\in\{A,B,C,AB,AC,BC,ABC\}.
+\]
+For a trimer geometry, compute the following files (15 per geometry if the
+3 isolated monomers are reused; 18 if recomputed; the optional total trimer
+adds one more):
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{File} & \textbf{Meaning} & \textbf{Per-geom?} \\
+\hline
+E\_A\_A.out,\;E\_B\_B.out,\;E\_C\_C.out & \(E_A(A),E_B(B),E_C(C)\) & no (compute once) \\
+E\_A\_AB.out,\;E\_A\_AC.out,\;E\_A\_ABC.out & \(E_A(AB),E_A(AC),E_A(ABC)\) & yes \\
+E\_B\_AB.out,\;E\_B\_BC.out,\;E\_B\_ABC.out & \(E_B(AB),E_B(BC),E_B(ABC)\) & yes \\
+E\_C\_AC.out,\;E\_C\_BC.out,\;E\_C\_ABC.out & \(E_C(AC),E_C(BC),E_C(ABC)\) & yes \\
+E\_AB\_AB.out,\;E\_AB\_ABC.out & \(E_{AB}(AB),E_{AB}(ABC)\) & yes \\
+E\_AC\_AC.out,\;E\_AC\_ABC.out & \(E_{AC}(AC),E_{AC}(ABC)\) & yes \\
+E\_BC\_BC.out,\;E\_BC\_ABC.out & \(E_{BC}(BC),E_{BC}(ABC)\) & yes \\
+\hline
+\textit{optional: } E\_ABC\_ABC.out & \(E_{ABC}(ABC)\) & yes (needed for CP or std.) \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Per-geometry summary.}
+After all files finish in \texttt{sXXX/}, write a single row to
+\texttt{terms.csv}:
+\begin{verbatim}
+shape,scale,EA_A,EB_B,EC_C,EA_AB,EA_AC,EA_ABC,EB_AB,EB_BC,EB_ABC,
+EC_AC,EC_BC,EC_ABC,EAB_AB,EAB_ABC,EAC_AC,EAC_ABC,EBC_BC,EBC_ABC,EABC_ABC
+\end{verbatim}
+(Include \texttt{EABC\_ABC} only if you compute CP/standard interaction energies.)
+%--
+\clearpage
+%---
+
+\paragraph{NWChem input strategy (practical notes).}
+The implementation of the 15 per-geometry jobs can be done in either of two ways:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item \textbf{One input per term} (simplest to script): write 15 small
+      \texttt{.nw} files in \texttt{sXXX/}, each producing one
+      \texttt{E\_*\_*.out}.
+\item \textbf{One input that runs multiple tasks} (fewer files): reuse the
+      same geometry and change ghost/fragment settings between
+      \texttt{task} blocks so the output prints each energy with a clear tag.
+\end{enumerate}
+Only the three monomer self-energies \(E_A(A),E_B(B),E_C(C)\) are
+geometry independent; compute them once per method/basis under
+\texttt{monomers/<method>/<basis>/} and reuse across all shapes/scales.
+
+\paragraph{Automation hook.}
+I will consider a consistent JSON file alongside each \texttt{sXXX/} directory(e.g., \texttt{config.json}) containing the three Cartesian coordinates and the scale \(s\). A python script can:
+(i) generate all \texttt{.nw} inputs from the JSON file,
+(ii) parse energies from \texttt{.out} files,
+(iii) append a row to \texttt{terms.csv}, and
+(iv) compute the BSSE difference for that geometry.
+This keeps the pipeline reproducible and easy to re-run for new basis sets.
+Note, Any recommendations are welcome!

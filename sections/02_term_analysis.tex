@@ -1,0 +1,170 @@
+\section{BSSE for the Trimer System: Subset Representation}
+\label{sec:bsse_trimer}
+
+In the previous section we saw that the BSSE
+[Eq.~(\ref{eq:equation-13})]
+for a trimer depends on the monomer and dimer energies
+evaluated in different basis sets.
+If we define the set
+\(\mathcal{B} = \{A,B,C\}\)
+to represent the basis sets associated with each monomer,
+we can describe the hierarchy of energy evaluations
+in terms of the subsets of \(\mathcal{B}\).
+
+\noindent
+The \textbf{power set} of \(\mathcal{B}\),
+denoted \(\mathcal{P}_{\mathcal{B}}\),
+is the set of all possible subsets of \(\mathcal{B}\):
+\[
+\mathcal{P}_{\mathcal{B}}
+   = \bigl\{
+      \emptyset,
+      \{A\},\{B\},\{C\},
+      \{A,B\},\{A,C\},\{B,C\},
+      \{A,B,C\}
+     \bigr\}.
+\]
+The power set contains every possible combination of the basis sets,
+including the empty set,
+and its cardinality is given by
+\[
+|\mathcal{P}_{\mathcal{B}}| = 2^{|\mathcal{B}|} = 2^3 = 8.
+\]
+
+\noindent
+We are interested in the subsets that contain a given element. So, for any element \(X \in \mathcal{B}\),
+we can define the collection of all subsets that contain \(X\) as
+\[
+\mathcal{P}_{\mathcal{B}}(X)
+   = \{\, S \subseteq \mathcal{B} \mid X \in S \,\}.
+\]
+For instance,
+\[
+\mathcal{P}_{\mathcal{B}}(A)
+   = \{\{A\}, \{A,B\}, \{A,C\}, \{A,B,C\}\}.
+\]
+%--
+\clearpage
+This shows that each monomer (here \(A\)) appears in four different subsets of \(\mathcal{B}\). Then, every subset \(S\) of \(\mathcal{B}\) that contains \(A\) can be written uniquely as
+\[
+S = \{A\} \cup T,
+\]
+where \(T\) is any subset of \(\mathcal{B}\setminus\{A\}\).
+Hence,
+\[
+\boxed{
+\mathcal{P}_{\mathcal{B}}(A)
+   = \bigl\{\, \{A\}\cup T \;\big|\;
+     T\subseteq\mathcal{B}\setminus\{A\}\,\bigr\}.
+}
+\]
+Now, we can see that there are \(2^{|\mathcal{B}|-1}\) possible subsets
+\(T\subseteq\mathcal{B}\setminus\{A\}\),
+it follows that
+\[
+|\mathcal{P}_{\mathcal{B}}(A)| = 2^{|\mathcal{B}|-1}.
+\]
+For a trimer (\(|\mathcal{B}|=3\)),
+we have \( |\mathcal{P}_{\mathcal{B}}(A)| = 2^{2} = 4\),
+corresponding exactly to the subsets
+\(\{A\}\), \(\{A,B\}\), \(\{A,C\}\), and \(\{A,B,C\}\).
+
+\noindent
+In an analogous way, we can determine all subsets of
+\(\mathcal{B}\) that contain a specific \emph{pair} of elements,
+say \(A\) and \(B\).
+These subsets correspond to all basis combinations
+that simultaneously include both \(A\) and \(B\),
+which are relevant for the evaluation of dimer energies.
+
+\noindent
+We define this collection as
+\[
+\mathcal{P}_{\mathcal{B}}(A,B)
+   = \{\, S \subseteq \mathcal{B} \mid \{A,B\} \subseteq S \,\}.
+\]
+For our trimer example,
+\[
+\mathcal{P}_{\mathcal{B}}(A,B)
+   = \{\{A,B\}, \{A,B,C\}\}.
+\]
+Each dimer therefore appears in exactly two subsets of \(\mathcal{B}\):
+its own dimer basis and the full trimer basis. Following the same reasoning as before,
+every subset \(S\) that contains both \(A\) and \(B\)
+can be written uniquely as
+\[
+S = \{A,B\} \cup T,
+\]
+where \(T\) is any subset of the remaining elements,
+\(\mathcal{B}\setminus\{A,B\}\).
+Hence,
+\[
+\boxed{
+\mathcal{P}_{\mathcal{B}}(A,B)
+   = \bigl\{\, \{A,B\} \cup T
+     \;\big|\;
+     T\subseteq\mathcal{B}\setminus\{A,B\}\,\bigr\}.
+}
+\]
+Because there are \(2^{|\mathcal{B}|-2}\) possible subsets
+\(T\subseteq\mathcal{B}\setminus\{A,B\}\),
+the number of subsets containing both \(A\) and \(B\) is
+\[
+|\mathcal{P}_{\mathcal{B}}(A,B)| = 2^{|\mathcal{B}|-2}.
+\]
+For the trimer (\(|\mathcal{B}|=3\)),
+we obtain \( |\mathcal{P}_{\mathcal{B}}(A,B)| = 2^{1} = 2\),
+corresponding to the subsets
+\(\{A,B\}\) and \(\{A,B,C\}\),
+as expected.
+
+\noindent
+More generally, for any \(k\)-tuple of elements
+\(\{X_1, X_2, \ldots, X_k\}\subseteq\mathcal{B}\),
+the collection of all subsets of \(\mathcal{B}\) containing these \(k\) elements
+is given by
+%--
+\clearpage
+\[
+\boxed{
+\mathcal{P}_{\mathcal{B}}(X_1,X_2,\ldots,X_k)
+   = \bigl\{\, \{X_1,X_2,\ldots,X_k\} \cup T
+     \;\big|\;
+     T\subseteq\mathcal{B}\setminus\{X_1,X_2,\ldots,X_k\}\,\bigr\},
+}
+\]
+with cardinality
+\begin{equation}
+|\mathcal{P}_{\mathcal{B}}(X_1,X_2,\ldots,X_k)|
+   = 2^{|\mathcal{B}|-k}.
+\label{eq:equation-14}
+\end{equation}
+This relation shows that:
+\begin{itemize}[topsep=-0.25cm]
+    \item each monomer (\(k=1\)) appears in \(2^{|\mathcal{B}|-1}\) subsets,
+    \item each dimer (\(k=2\)) appears in \(2^{|\mathcal{B}|-2}\) subsets,
+    \item each trimer (\(k=3\)) appears in \(2^{|\mathcal{B}|-3}\) subsets, and so on.
+\end{itemize}
+This hierarchical pattern is precisely what underlies
+the structure of the BSSE corrections
+in the Valiron--Mayer formulation of the many-body counterpoise method.
+
+
+
+\noindent
+This formalism provides a clear combinatorial interpretation
+of the BSSE hierarchy:
+each monomer must be evaluated in all subsets
+that contain it,
+while each dimer appears only in the subsets
+that contain both of its monomers.
+For the trimer case (\(N=3\)),
+each monomer energy therefore involves
+four basis sets
+(its own, two dimer bases, and the trimer basis),
+whereas each dimer energy appears in two
+(its own and the trimer basis).
+This subset structure offers a systematic and general framework
+for expressing and counting the hierarchical counterpoise corrections
+in any \(N\)-body cluster.
+

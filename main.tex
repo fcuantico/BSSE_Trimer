@@ -1,0 +1,95 @@
+% !TEX program = pdflatex
+\documentclass[11pt]{article}
+
+% ---------- Page layout ----------
+\usepackage[margin=1in]{geometry}
+
+% ---------- Font and encoding ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+% ---------- Microtypography ----------
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % fixes math symbol spacing
+
+
+% ---------- Math packages ----------
+\usepackage{amsmath, amssymb, mathtools}
+
+% ---------- Lists and formatting ----------
+\usepackage{enumitem}
+
+% ---------- Figures and graphics ----------
+\usepackage{graphicx}
+
+% ---------- Hyperlinks ----------
+\usepackage[hidelinks]{hyperref}
+
+% ---------- Bibliography (biblatex) ----------
+\usepackage[backend=biber,style=numeric,sorting=none,autocite=superscript]{biblatex}
+\addbibresource{references.bib} % your .bib file
+\AtEveryBibitem{\clearfield{doi}\clearfield{issn}\clearfield{isbn}}
+
+
+% ---------- Line & paragraph spacing ----------
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parskip}{0.75cm}
+
+% ---------- Custom macros ----------
+\newcommand{\E}[2]{E_{#1}^{#2}}   % energy: system, basis
+\newcommand{\DE}{\Delta E}
+\newcommand{\eps}{\varepsilon}
+
+% Title info
+\title{BSSE for Trimers: Expression, Term Analysis, and Study Plan}
+\author{Prepared by Felix Rojas}
+\date{\today}
+
+% ---------- IncludeOnly ----------
+% Compile *only* the first section:
+\includeonly{
+sections/01_trimer_bsse_expression,
+sections/02_term_analysis,
+sections/03_Computational_study_and_Number_of_total_computations,
+sections/04_Project file layout_and_NWChem_job_plan
+}
+% You can add more, separated by commas:
+% \includeonly{sections/01_trimer_bsse_expression,sections/02_term_analysis}
+
+% ---------- Section number formatting ----------
+\makeatletter
+% Add dot after section numbers in headings
+\renewcommand{\@seccntformat}[1]{\csname the#1\endcsname.\quad}
+% Add dot after section numbers in TOC
+\renewcommand{\numberline}[1]{#1.\hspace{0.5em}}
+\makeatother
+
+% =====================================================
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A concise, modular document outlining the BSSE formulation for a trimer,
+a short analysis of its terms, and the computational plan for our study.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+% ---------- Modular sections ----------
+\input{sections/01_trimer_bsse_expression}
+\input{sections/02_term_analysis}
+\input{sections/03_Computational_study_and_Number_of_total_computations}
+\input{sections/04_Project file layout_and_NWChem_job_plan}
+
+% ---------- Appendices ----------
+\clearpage
+\appendix
+\numberwithin{equation}{section} % Eq. numbering A.1, A.2, ...
+
+\include{appendices/A1_trimer_cp_derivation}   
+
+% ---------- Bibliography (optional for now) ----------
+\printbibliography
+
+\end{document}
