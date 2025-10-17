@@ -21,19 +21,19 @@ N_{\mathrm{eval}}^{\mathrm{BSSE}}(N)
 &= \sum_{k=1}^{N-1} \binom{N}{k}\,2^{\,N-k}
 \label{eq:equation-16}
 \end{align}
-%--
+
 \clearpage
 Recalling the binomial theorem\autocite{Beeler2015}, we have that
-\[
+\begin{equation*}
 (x+y)^{n}
   = \sum_{k=0}^{n} \binom{n}{k}\,x^{k}\,y^{\,n-k}.
-\]
+\end{equation*}
 Thus,
 \begin{equation*}
     3^{n}
     = (1+2)^{n}
     = \sum_{k=0}^{n} \binom{n}{k}\,1^{k}\,2^{\,n-k}
-    = \sum_{k=0}^{n} \binom{n}{k}\,2^{\,n-k}.
+    = \sum_{k=0}^{n}\binom{n}{k}\,2^{\,n-k}.
 \end{equation*}
 
 \noindent
@@ -59,12 +59,13 @@ N_{\mathrm{eval}}^{\mathrm{BSSE}}(N)
 \end{align}
 
 \noindent\textbf{For the trimer case ($N=3$)}, we have
-\[
+\begin{equation*}
 N_{\mathrm{eval}}^{\mathrm{BSSE}}(3)
 = 3^{3} - 2^{3} - 1
 = 27 - 8 - 1
 = \boxed{18}.
-\]
+\end{equation*}
+
 These 18 terms consist of:
 \begin{itemize}[leftmargin=2em,topsep=-0.25cm]
   \item $12$ monomer-in-subset energies: each monomer appears in $2^{3-1}=4$ subsets,
@@ -74,51 +75,48 @@ These 18 terms consist of:
 \end{itemize}
 If, in addition, one wishes to report the \emph{counterpoise (CP)},
 the trimer total energy $E_{ABC}(ABC)$ must be included:
-\[
+\begin{equation*}
 N_{\mathrm{eval}}^{\mathrm{all\ terms}}(3)
 = 18 + 1 = \boxed{19}.
-\]
+\end{equation*}
 
-%--
 \clearpage
-%---
 \subsection{Geometry sampling and scaling protocol}
 \label{sec:families}
 
-Each \emph{configuration} (geometry/scale) requires the counts above. 
-Only the three isolated-monomer energies $E_A(A)$, $E_B(B)$, $E_C(C)$ 
-are geometry independent and can be computed once per method/basis.
-
+Each \emph{configuration} (geometry or scale) requires the number of evaluations described above.  
+Only the three isolated-monomer energies, $E_A(A)$, $E_B(B)$, and $E_C(C)$, are geometry independent and can therefore be computed once per basis (since HF and MP2 are obtained within the same CCSD(T) run).  
+Consequently, for the BSSE runs, only fifteen geometry-dependent terms need to be computed for each configuration, in addition to one evaluation per monomer that is reused across geometries.  
+An analogous reasoning applies to the ``all terms'' runs.  
 Hence, with $N_{\mathrm{geom}}$ geometries,
 \[
 \boxed{
 \begin{aligned}
 N_{\mathrm{runs}}^{\mathrm{BSSE}}(3)
-  &= 3 \;+\; N_{\mathrm{geom}}\,[\,18-3\,]
-   \;=\; 3 + 15\,N_{\mathrm{geom}},\\[4pt]
+  &= 3 + N_{\mathrm{geom}}\,[\,18 - 3\,]
+   = 3 + 15\,N_{\mathrm{geom}},\\[4pt]
 N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3)
-  &= 3 \;+\; N_{\mathrm{geom}}\,[\,19-3\,]
-   \;=\; 3 + 16\,N_{\mathrm{geom}}.
+  &= 3 + N_{\mathrm{geom}}\,[\,19 - 3\,]
+   = 3 + 16\,N_{\mathrm{geom}}.
 \end{aligned}}
 \]
 
 In the trimer study we consider four shape families:
-\emph{linear}, \emph{equilateral}, \emph{isosceles}, and \emph{scalene}
-(Fig.~\ref{fig:figure-1}). 
-For each family we sample $12$ similar (uniformly scaled) geometries, so
-\[
-N_{\mathrm{geom}} = 4 \times 12 = 48.
-\]
+\emph{linear}, \emph{equilateral}, \emph{isosceles}, and \emph{scalene}.
+For each family we sample $10$ similar (uniformly scaled) geometries, so
+\begin{equation*}
+N_{\mathrm{geom}} = 4 \times 10 = 40.
+\end{equation*}
 Therefore,
-\[
+\begin{equation*}
 \boxed{
 \begin{aligned}
 N_{\mathrm{runs}}^{\mathrm{BSSE}}(3) 
-  &= 3 + 15\times 48 \;=\; \mathbf{723},\\[2pt]
+  &= 3 + 15\times 40 \;=\; \mathbf{603},\\[2pt]
 N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3) 
-  &= 3 + 16\times 48 \;=\; \mathbf{771}.
+  &= 3 + 16\times 40 \;=\; \mathbf{643}.
 \end{aligned}}
-\]
+\end{equation*}
 
 \begin{figure}[!ht]
   \centering
@@ -129,45 +127,42 @@ N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3)
 
 \subsection*{\centering Electronic-structure methods and basis sets}
 
-All computations will be performed with three methods
-(HF, MP2, CCSD(T)) and two basis sets
-(aug-cc-pVDZ, aug-cc-pVTZ). If wall-time permits,
-aug-cc-pVQZ will also be included. So, for $M=3$ (methods) and $B\in\{2,3\}$ (basis sets).
+All computations evaluate three electronic-structure methods
+(HF, MP2, CCSD(T)), but \emph{HF and MP2 are included from each CCSD(T) run}.
+Therefore, the number of distinct NWChem \emph{runs} does \emph{not} scale with the number of methods.
+Let $B\in\{2,3\}$ be the number of basis sets used (aug-cc-pVDZ, aug-cc-pVTZ, and optionally aug-cc-pVQZ).
 The total number of runs is
-\[
+\begin{equation*}
 \boxed{
 \begin{aligned}
-N_{\mathrm{runs}}^{\mathrm{BSSE}}(3; M,B)
-  &= \bigl(3 + 15\,N_{\mathrm{geom}}\bigr)\; M B
-   \;=\; \mathbf{723}\; M B,\\[4pt]
-N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3; M,B)
-  &= \bigl(3 + 16\,N_{\mathrm{geom}}\bigr)\; M B
-   \;=\; \mathbf{771}\; M B,
+N_{\mathrm{runs}}^{\mathrm{BSSE}}(3; B)
+  &= \bigl(3 + 15\,N_{\mathrm{geom}}\bigr)\; B
+   \;=\; \mathbf{603}\; B,\\[4pt]
+N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3; B)
+  &= \bigl(3 + 16\,N_{\mathrm{geom}}\bigr)\; B
+   \;=\; \mathbf{643}\; B,
 \end{aligned}}
-\]
-where $N_{\mathrm{geom}}=48$ for the four shape families
-with 12 scale points each.
+\end{equation*}
 
 \noindent\textbf{With two basis sets ($B=2$):}
-\[
+\begin{equation*}
 \boxed{
 \begin{aligned}
 N_{\mathrm{runs}}^{\mathrm{BSSE}}(3)
-  &= 723 \times 3 \times 2 = \mathbf{4338},\\[2pt]
+  &= 603 \times 2 = \mathbf{1206},\\[2pt]
 N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3)
-  &= 771 \times 3 \times 2 = \mathbf{4626}.
+  &= 643 \times 2 = \mathbf{1286}.
 \end{aligned}}
-\]
+\end{equation*}
 
 \noindent\textbf{If aug-cc-pVQZ is added ($B=3$):}
-\[
+\begin{equation*}
 \boxed{
 \begin{aligned}
 N_{\mathrm{runs}}^{\mathrm{BSSE}}(3)
-  &= 723 \times 3 \times 3 = \mathbf{6507},\\[2pt]
+  &= 603 \times 3 = \mathbf{1809},\\[2pt]
 N_{\mathrm{runs}}^{\mathrm{all\ terms}}(3)
-  &= 771 \times 3 \times 3 = \mathbf{6939}.
+  &= 643 \times 3 = \mathbf{1929}.
 \end{aligned}}
-\]
-
+\end{equation*}
 

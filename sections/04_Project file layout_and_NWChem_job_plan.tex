@@ -1,10 +1,9 @@
-
 \section{Project file layout and NWChem job plan}
 \label{sec:files}
 
 \paragraph{Goals.}
 (i) Minimize directory depth and enable a single parsing loop across outputs;
-(ii) harvest \textbf{HF} and \textbf{MP2} energies from each \textbf{CCSD(T)} run to avoid redundant jobs;
+(ii) Collect \textbf{HF} and \textbf{MP2} energies from each \textbf{CCSD(T)} run to avoid redundant jobs;
 (iii) keep runs fully reproducible and easy to re-generate.
 
 \paragraph{Shallow, one-geometry-one-output (OGOO) layout.}
@@ -126,3 +125,4 @@ A Python driver:
 (iv) computes CP-corrected interaction energies and BSSE per method, and
 (v) appends a row to \texttt{terms.csv}.
 This preserves your original workflow while enabling a single over-the-tree parsing loop.
+
